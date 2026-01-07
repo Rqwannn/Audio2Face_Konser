@@ -1,0 +1,1 @@
+set FFMPEG_PATH=D:\Audio2Face\echomimic_v\ffmpeg-4.4-amd64-static
