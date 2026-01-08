@@ -1,2 +1,6 @@
 env
 core/pretrained_weights
+.env
+
+__pycache__/
+notes.txt
