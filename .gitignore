@@ -4,3 +4,4 @@ core/pretrained_weights
 
 __pycache__/
 notes.txt
+assets/inswapper_128.onnx
