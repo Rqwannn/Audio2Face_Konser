@@ -1,20 +1,44 @@
 #!/bin/bash
 
-rm -f models.zip
+# --- KONFIGURASI ---
+TARGET_DIR="assets/models"
+mkdir -p "$TARGET_DIR"
 
-echo "Downloading models..."
-gdown --id 1aeOk-yyCBbS8e-KzeAgv_aIaxUC2GHMX -O inswapper_128.zip
+FILES=(
+    "1f4s3wgTOd6BMkEYkBEjMDqVjcyBDYszG:inswapper_128.zip"
+    "1b_iZJ8TMgDuOS4n24OQAOdmIhmOFjmF2:buffalo_l.zip" 
+)
+# -------------------
 
-if [ -f "models.zip" ]; then
-    echo "Download selesai. Mengekstrak..."
+echo "Memulai proses download..."
+
+for entry in "${FILES[@]}"; do
+    FILE_ID="${entry%%:*}"
+    FILENAME="${entry##*:}"
+
+    echo "----------------------------------------"
+    echo "Processing: $FILENAME"
     
-    TARGET_DIR="assets"
-    mkdir -p "$TARGET_DIR"
-    
-    unzip -o models.zip -d "$TARGET_DIR"
-    rm models.zip
-    
-    echo "Selesai! Model tersimpan di folder '$TARGET_DIR'."
-else
-    echo "Gagal mendownload models.zip"
-fi
+    rm -f "$FILENAME"
+
+    echo "Downloading..."
+    gdown --id "$FILE_ID" -O "$FILENAME"
+
+    if [ -f "$FILENAME" ]; then
+        echo "Download sukses. Mengekstrak ke $TARGET_DIR..."
+
+        if [[ "$FILENAME" == *"buffalo_l"* ]]; then
+            TARGET_DIR="assets/models/buffalo_l"
+        fi
+        
+        unzip -o "$FILENAME" -d "$TARGET_DIR"
+        
+        rm "$FILENAME"
+        echo "Selesai memproses $FILENAME."
+    else
+        echo "[ERROR] Gagal mendownload $FILENAME. Cek ID Google Drive."
+    fi
+done
+
+echo "----------------------------------------"
+echo "Semua proses selesai!"

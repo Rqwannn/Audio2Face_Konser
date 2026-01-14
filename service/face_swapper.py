@@ -20,7 +20,7 @@ class FaceSwapperService:
 
         print(f"[INFO] Loading FaceAnalysis from {self.assets_dir}...")
 
-        self.app = FaceAnalysis(name='buffalo_l', root=str(self.assets_dir))
+        self.app = FaceAnalysis(name='buffalo_l', root=str(self.assets_dir.parent))
         self.app.prepare(ctx_id=self.ctx_id, det_size=(640, 640))
 
         print("[INFO] Loading Inswapper Model...")

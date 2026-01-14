@@ -20,7 +20,7 @@ def get_service(db: AsyncSession = Depends(get_db)) -> DataDiriService:
     """Dependency untuk get service"""
     return DataDiriService(db)
 
-swapper_service = FaceSwapperService(assets_dir="assets", use_gpu=True) 
+swapper_service = FaceSwapperService(assets_dir="assets/models", use_gpu=True) 
 
 @router.post("/change_face", status_code=HTTPStatus.CREATED)
 async def enrollment_endpoint(
@@ -70,6 +70,29 @@ async def enrollment_endpoint(
             target_path=target_avatar_path,
             output_path=temp_output_path
         )
+
+        # =========================================================
+        # DEBUGGING: SHOW IMAGE POP UP
+        # =========================================================
+        
+        try:
+            import cv2
+            debug_img = cv2.imread(swapped_image_path)
+            
+            if debug_img is not None:
+                cv2.imshow("DEBUG VIEW: Hasil Face Swap", debug_img)
+                
+                print(f"[DEBUG] Menampilkan gambar: {swapped_image_path}")
+                print("[DEBUG] Tekan tombol apa saja (misal: SPASI) pada window gambar untuk lanjut...")
+                
+                cv2.waitKey(0) 
+                cv2.destroyAllWindows()
+            else:
+                print("[DEBUG] Gagal membaca gambar untuk ditampilkan.")
+        except Exception as e:
+            print(f"[DEBUG] Error menampilkan gambar: {e}")
+
+        # =========================================================
 
         result = await Audio2FaceService.predict(
             image_path=swapped_image_path, 
