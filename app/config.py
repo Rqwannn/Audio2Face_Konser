@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     PRIVATE_KEY_BUCKET_PROD: str = os.getenv("PRIVATE_KEY_BUCKET_PROD", "")
     REGION_BUCKET_PROD: str = os.getenv("REGION_BUCKET_PROD", "")
     S3_BUCKET_PROD: str = os.getenv("S3_BUCKET_PROD", "")
+    AUTH_VERIFY_URL: str = os.getenv("AUTH_VERIFY_URL", "http://localhost:8000/verify-token")
 
 settings = Settings()
 
