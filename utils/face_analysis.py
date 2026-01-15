@@ -19,6 +19,9 @@ from utils.storage import ensure_available
 from utils.models.check_model import get_model
 from utils.common import Face
 
+from fastapi import HTTPException, status
+from utils.parsing_response import fail_response
+
 __all__ = ['FaceAnalysis']
 
 class FaceAnalysis:
@@ -58,23 +61,73 @@ class FaceAnalysis:
                 model.prepare(ctx_id)
 
     def get(self, img, max_num=0, det_metric='default'):
-        bboxes, kpss = self.det_model.detect(img,
-                                             max_num=max_num,
-                                             metric=det_metric)
+        result = self.det_model.detect(img, max_num=max_num, metric=det_metric)
+    
+        if result is None or len(result) != 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=fail_response(
+                    "INVALID_IMAGE_FILE",
+                    {
+                        "status": 400,
+                        "message": "[ERROR] Detection failed - returned None or invalid result."
+                    }
+                )
+            )
+                
+            return []
+        
+        bboxes, kpss = result
+
+        if bboxes is None:
+            print("[ERROR] bboxes is None")
+            return []
+        
         if bboxes.shape[0] == 0:
             return []
+        
         ret = []
+
         for i in range(bboxes.shape[0]):
             bbox = bboxes[i, 0:4]
             det_score = bboxes[i, 4]
             kps = None
+
             if kpss is not None:
                 kps = kpss[i]
+            
             face = Face(bbox=bbox, kps=kps, det_score=det_score)
+
+            if face is None :
+                raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=fail_response(
+                    "INVALID_IMAGE_FILE",
+                    {
+                        "status": 400,
+                        "message": "[ERROR] Detection Face failed - returned None."
+                    }
+                )
+            )
+
             for taskname, model in self.models.items():
+
                 if taskname=='detection':
                     continue
-                model.get(img, face)
+                 
+                try:
+                    model.get(img, face)
+                except AttributeError as e:
+                    print(f"[ERROR] AttributeError in {taskname}: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    raise 
+                except Exception as e:
+                    print(f"[ERROR] Exception in {taskname}: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    raise 
+
             ret.append(face)
         return ret
 

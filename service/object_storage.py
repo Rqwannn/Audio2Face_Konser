@@ -68,6 +68,7 @@ class S3FileHandler:
             
             temp_path = upload_file.temp_path
             with Image.open(temp_path) as img:
+                
                 print(f"IMAGE INFO:")
                 print(f"  Format: {img.format}")
                 print(f"  Mode: {img.mode}")

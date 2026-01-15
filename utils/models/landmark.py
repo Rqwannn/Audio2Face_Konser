@@ -7,6 +7,7 @@
 from __future__ import division
 import numpy as np
 import cv2
+from pathlib import Path
 import onnx
 import onnxruntime
 from utils import face_align
@@ -17,6 +18,8 @@ __all__ = [
     'Landmark',
 ]
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+ASSETS_DIR = PROJECT_ROOT / "assets"
 
 class Landmark:
     def __init__(self, model_file=None, session=None):
@@ -66,7 +69,7 @@ class Landmark:
         if output_shape[1]==3309:
             self.lmk_dim = 3
             self.lmk_num = 68
-            self.mean_lmk = get_object('meanshape_68.pkl')
+            self.mean_lmk = get_object(f"{ASSETS_DIR}/meanshape_68.pkl")
             self.require_pose = True
         else:
             self.lmk_dim = 2
@@ -83,31 +86,39 @@ class Landmark:
         center = (bbox[2] + bbox[0]) / 2, (bbox[3] + bbox[1]) / 2
         rotate = 0
         _scale = self.input_size[0]  / (max(w, h)*1.5)
+
         #print('param:', img.shape, bbox, center, self.input_size, _scale, rotate)
         aimg, M = face_align.transform(img, center, self.input_size[0], _scale, rotate)
         input_size = tuple(aimg.shape[0:2][::-1])
+
         #assert input_size==self.input_size
         blob = cv2.dnn.blobFromImage(aimg, 1.0/self.input_std, input_size, (self.input_mean, self.input_mean, self.input_mean), swapRB=True)
         pred = self.session.run(self.output_names, {self.input_name : blob})[0][0]
+
         if pred.shape[0] >= 3000:
             pred = pred.reshape((-1, 3))
         else:
             pred = pred.reshape((-1, 2))
+
         if self.lmk_num < pred.shape[0]:
             pred = pred[self.lmk_num*-1:,:]
+
         pred[:, 0:2] += 1
         pred[:, 0:2] *= (self.input_size[0] // 2)
+
         if pred.shape[1] == 3:
             pred[:, 2] *= (self.input_size[0] // 2)
 
         IM = cv2.invertAffineTransform(M)
         pred = face_align.trans_points(pred, IM)
         face[self.taskname] = pred
+
         if self.require_pose:
             P = transform.estimate_affine_matrix_3d23d(self.mean_lmk, pred)
             s, R, t = transform.P2sRt(P)
             rx, ry, rz = transform.matrix2angle(R)
             pose = np.array( [rx, ry, rz], dtype=np.float32 )
             face['pose'] = pose #pitch, yaw, roll
+
         return pred
 

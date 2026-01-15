@@ -47,7 +47,7 @@ class FaceSwapperService:
                     }
                 )
             )
-
+        
         img_target = cv2.imread(target_path)
 
         nparr = np.frombuffer(source_bytes, np.uint8)
@@ -64,7 +64,17 @@ class FaceSwapperService:
                     }
                 )
             )
-
+        
+        h, w = img_source.shape[:2]
+        max_dim = 1280 
+        
+        if h > max_dim or w > max_dim:
+            scale = max_dim / max(h, w)
+            new_w = int(w * scale)
+            new_h = int(h * scale)
+            print(f"[INFO] Resizing image from {w}x{h} to {new_w}x{new_h} to prevent crash...")
+            img_source = cv2.resize(img_source, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        
         faces_source = self.app.get(img_source)
         faces_target = self.app.get(img_target)
 

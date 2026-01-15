@@ -2,7 +2,9 @@ from fastapi import APIRouter, Form, UploadFile, File, HTTPException, status, De
 from fastapi.responses import JSONResponse
 from http import HTTPStatus
 import json
+import numpy as np
 import os
+import cv2
 from typing import List
 from service.audio2face import Audio2FaceService
 from service.face_swapper import FaceSwapperService
@@ -61,7 +63,7 @@ async def enrollment_endpoint(
 
         source_bytes = await image_upload.read()
         
-        target_avatar_path = os.path.join("assets", "testing_man.jpeg") 
+        target_avatar_path = os.path.join("assets", "avatar_target", "testing_man_1.png") 
         output_filename = f"swapped_{nik}.jpg"
         temp_output_path = os.path.join("temp", output_filename)
 
@@ -76,7 +78,6 @@ async def enrollment_endpoint(
         # =========================================================
         
         try:
-            import cv2
             debug_img = cv2.imread(swapped_image_path)
             
             if debug_img is not None:
