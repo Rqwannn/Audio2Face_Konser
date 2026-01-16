@@ -7,6 +7,7 @@ mkdir -p "$TARGET_DIR"
 FILES=(
     "1f4s3wgTOd6BMkEYkBEjMDqVjcyBDYszG:inswapper_128.zip"
     "1b_iZJ8TMgDuOS4n24OQAOdmIhmOFjmF2:buffalo_l.zip" 
+    "15kKcf3QJyQXXOr0EkD5N9J8owCX840IK:pretrained_weights.zip" 
 )
 # -------------------
 
@@ -29,6 +30,10 @@ for entry in "${FILES[@]}"; do
 
         if [[ "$FILENAME" == *"buffalo_l"* ]]; then
             TARGET_DIR="assets/models/buffalo_l"
+        elif [[ "$FILENAME" == *"pretrained_weights"* ]]; then
+            TARGET_DIR="core"
+        else
+            TARGET_DIR="assets/models"
         fi
         
         unzip -o "$FILENAME" -d "$TARGET_DIR"
